@@ -7,6 +7,7 @@
 
 <script>
 import io from 'socket.io-client'
+const port = process.env.PORT || 4000;
 
 export default {
   name: 'App',
@@ -16,7 +17,7 @@ export default {
     }
   },
   mounted: function() {
-    this.socket = io('http://localhost:4000');
+    this.socket = io(`http://localhost:${port}`);
   }
 }
 </script>
