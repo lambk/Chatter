@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('sendMsg', (data) => {
-    console.log(`[Msg] Sender: ${data.sender} Content: ${data.content}`);
+    console.log(`[Msg] Sender: ${data.sender.name} [${data.sender.id}] Content: ${data.content}`);
     socket.broadcast.emit('addMsg', data)
   });
 });

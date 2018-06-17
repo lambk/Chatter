@@ -7,8 +7,10 @@
       </div>
     </div>
     <div class="chat-window">
-      <div v-for="msg in messages" name="chat-msg" :key="msg.datetime">
-        <span><b>{{msg.sender}}: </b>{{msg.content}}</span>
+      <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id=socket.id}">
+        <div class="msg-bubble col-9">
+          <span><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
+        </div>
       </div>
     </div>
     <form class="input-group" @submit.prevent="sendMsg">
@@ -35,7 +37,7 @@ export default {
   },
   computed: {
     isFormValid: function() {
-      return this.nameInput.length !== 0 && this.msgInput.length !== 0;
+      return this.socket && this.socket.connected && this.nameInput.length !== 0 && this.msgInput.length !== 0;
     }
   },
   watch: {
@@ -52,9 +54,12 @@ export default {
       });
     },
     sendMsg: function() {
-      if (this.nameInput.length === 0 || this.msgInput.length === 0) return;
+      if (!this.isFormValid) return;
       let data = {
-        sender: this.nameInput,
+        sender: {
+          name: this.nameInput,
+          id: this.socket.id
+        },
         content: this.msgInput,
         datetime: new Date().getTime()
       };
@@ -81,15 +86,22 @@ export default {
   text-align: left;
 }
 
-[name=chat-msg] {
-  border-radius: 3px 8px 8px 3px;
+.msg-bubble {
+  border-radius: 5px 15px 15px 5px;
   background: #F3F3F3;
   padding: 3px 6px;
   margin-bottom: 5px;
 }
 
-[name=chat-msg]:nth-child(odd) {
+.msg-bubble:nth-child(odd) {
   background: #FAFAFA;
+}
+
+.own-msg > .msg-bubble {
+  background: #85C1E9 !important;
+  border-radius: 15px 5px 5px 15px;
+  text-align: right;
+  margin-left: auto;
 }
 
 form {
