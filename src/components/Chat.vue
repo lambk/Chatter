@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="chat-window">
-      <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id=socket.id}">
+      <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
         <div class="msg-bubble col-9">
           <span><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
         </div>
