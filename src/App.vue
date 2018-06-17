@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <i v-if="socket && socket.connected">Socket connected</i>
+    <h1>Chatter</h1>
     <router-view :socket="socket"/>
   </div>
 </template>

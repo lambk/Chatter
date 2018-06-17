@@ -7,6 +7,9 @@
       </div>
     </div>
     <div class="chat-window">
+      <div v-if="!socket || !socket.connected" class="chat-overlay">
+        <span>No Connection</span>
+      </div>
       <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
         <div class="msg-bubble col-9">
           <span><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
@@ -82,8 +85,27 @@ export default {
   height: 400px;
   overflow-y: scroll;
 
+  position: relative;
   padding: 10px;
   text-align: left;
+}
+
+.chat-overlay {
+  background: rgba(0, 0, 0, 0.15);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  z-index: 20;
+}
+
+.chat-overlay span {
+  display: block;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .msg-bubble {
