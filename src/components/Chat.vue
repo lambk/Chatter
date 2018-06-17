@@ -11,9 +11,7 @@
         <span>No Connection</span>
       </div>
       <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
-        <div class="msg-bubble col-9">
-          <span><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
-        </div>
+        <span class="msg-bubble"><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
       </div>
     </div>
     <form class="input-group" @submit.prevent="sendMsg">
@@ -37,6 +35,7 @@ export default {
   props: ['socket'],
   mounted: function() {
     this.registerSocketEvents();
+    this.getUserCount();
   },
   computed: {
     isFormValid: function() {
@@ -72,6 +71,19 @@ export default {
     },
     addMsg: function(data) {
       this.messages.push(data);
+    },
+    getUserCount: function() {
+      let url = (window.location.hostname === 'localhost' ? 'http://localhost:4000' : '') + '/api/usercount';
+      this.$http.get(url).then(function(response) {
+        this.messages.push({
+          sender: {
+            name: 'Server'
+          },
+          content: `${response.data.count + 1} users connected`
+        });
+      }, function() {
+        console.log('Error fetching usercount');
+      });
     }
   }
 }
@@ -109,21 +121,23 @@ export default {
 }
 
 .msg-bubble {
+  display: inline-block;
+  margin-bottom: 5px;
+  max-width: 50%;
+
+  padding: 3px 15px 3px 6px;
   border-radius: 5px 15px 15px 5px;
   background: #F3F3F3;
-  padding: 3px 6px;
-  margin-bottom: 5px;
-}
-
-.msg-bubble:nth-child(odd) {
-  background: #FAFAFA;
 }
 
 .own-msg > .msg-bubble {
-  background: #85C1E9 !important;
+  padding: 3px 6px 3px 15px;
   border-radius: 15px 5px 5px 15px;
+  background: #85C1E9 !important;
+}
+
+.own-msg {
   text-align: right;
-  margin-left: auto;
 }
 
 form {
