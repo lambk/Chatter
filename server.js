@@ -17,8 +17,8 @@ io.on('connection', (socket) => {
     console.log(`Socket disconnection (${socket.id})`);
   });
 
-  socket.on('press', () => {
-    console.log('Add one message received');
-    io.sockets.emit('addOne');
+  socket.on('sendMsg', (data) => {
+    console.log(`[Msg] Sender: ${data.sender} Content: ${data.content}`);
+    socket.broadcast.emit('addMsg', data)
   });
 });
