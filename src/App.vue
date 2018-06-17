@@ -16,7 +16,11 @@ export default {
     }
   },
   mounted: function() {
-    this.socket = io();
+    if (process.env.HEROKU) {
+      this.socket = io();
+    } else {
+      this.socket = io('localhost:4000');
+    }
   }
 }
 </script>
