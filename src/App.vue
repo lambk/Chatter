@@ -16,10 +16,10 @@ export default {
     }
   },
   mounted: function() {
-    if (process.env.HEROKU) {
-      this.socket = io();
-    } else {
+    if (window.location.hostname === 'localhost') {
       this.socket = io('localhost:4000');
+    } else {
+      this.socket = io();
     }
   }
 }
