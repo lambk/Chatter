@@ -1,10 +1,10 @@
 <template lang="html">
-  <div class="col-sm-11 col-md-9 col-lg-7" style="margin: auto">
-    <div class="container-fluid">
-      <div class="form-group row">
-        <label for="nameTxt" class="col-2 col-form-label">Name</label>
-        <input id="nameTxt" type="text" class="form-control col-10" v-model="nameInput">
+  <div>
+    <div class="col-6 input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text">Name</span>
       </div>
+      <input type="text" class="form-control" v-model="nameInput">
     </div>
     <div class="chat-window">
       <div v-if="!socket || !socket.connected" class="chat-overlay">
@@ -15,9 +15,9 @@
       </div>
     </div>
     <form class="input-group" @submit.prevent="sendMsg">
-      <input type="text" class="form-control" style="border-top-left-radius: 0" v-model="msgInput" placeholder="Send a message">
+      <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
       <div class="input-group-append">
-        <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': !isFormValid}" style="width: 120px; border-top-right-radius: 0" value="Send">
+        <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': !isFormValid}" style="width: 120px" value="Send">
       </div>
     </form>
   </div>
@@ -91,14 +91,11 @@ export default {
 
 <style lang="css" scoped>
 .chat-window {
-  border: 1px solid grey;
-  border-bottom: 0;
-  border-radius: 6px 6px 0 0;
   height: 400px;
-  overflow-y: scroll;
+  overflow-y: auto;
 
   position: relative;
-  padding: 10px;
+  padding: 15px;
   text-align: left;
 }
 
