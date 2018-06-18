@@ -1,25 +1,27 @@
 <template lang="html">
   <div>
-    <div class="col-6 input-group">
-      <div class="input-group-prepend">
-        <span class="input-group-text">Name</span>
-      </div>
-      <input type="text" class="form-control" v-model="nameInput">
+    <div v-if="!socket || !socket.connected" class="chat-overlay">
+      <span>No Connection</span>
     </div>
-    <div class="chat-window">
-      <div v-if="!socket || !socket.connected" class="chat-overlay">
-        <span>No Connection</span>
+    <div :class="{'blur': !socket || !socket.connected}">
+      <div class="col-6 input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Name</span>
+        </div>
+        <input type="text" class="form-control" v-model="nameInput">
       </div>
-      <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
-        <span class="msg-bubble"><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
+      <div class="chat-window">
+        <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
+          <span class="msg-bubble"><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
+        </div>
       </div>
+      <form class="input-group" @submit.prevent="sendMsg">
+        <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
+        <div class="input-group-append">
+          <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': !isFormValid}" style="width: 120px" value="Send">
+        </div>
+      </form>
     </div>
-    <form class="input-group" @submit.prevent="sendMsg">
-      <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
-      <div class="input-group-append">
-        <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': !isFormValid}" style="width: 120px" value="Send">
-      </div>
-    </form>
   </div>
 </template>
 
@@ -100,7 +102,8 @@ export default {
 }
 
 .chat-overlay {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
   position: absolute;
   top: 0;
   left: 0;
@@ -108,6 +111,10 @@ export default {
   height: 100%;
   text-align: center;
   z-index: 20;
+}
+
+.blur {
+  -webkit-filter: blur(1px);
 }
 
 .chat-overlay span {
