@@ -28,6 +28,11 @@ export default {
 </script>
 
 <style>
+@font-face {
+  font-family: palanquin;
+  src: url('./assets/palanquin/palanquin-light.ttf');
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -35,6 +40,10 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+
+h1, h2, h3 {
+  font-family: palanquin;
 }
 
 body {
