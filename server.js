@@ -21,6 +21,7 @@ const server = app.listen(port, () => {
 const io = socketio(server);
 io.on('connection', (socket) => {
   console.log(`Socket connection established (${socket.id})`);
+  socket.broadcast.emit('addArrival');
 
   socket.on('disconnect', () => {
     console.log(`Socket disconnection (${socket.id})`);

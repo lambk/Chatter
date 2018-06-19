@@ -56,6 +56,14 @@ export default {
       this.socket.on('addMsg', function(data) {
         self.addMsg(data);
       });
+      this.socket.on('addArrival', function(data) {
+        self.addMsg({
+          sender: {
+            name: 'Server'
+          },
+          content: 'A user has just arrived'
+        });
+      })
     },
     sendMsg: function() {
       if (!this.isFormValid) return;
