@@ -4,21 +4,32 @@
       <span>No Connection</span>
     </div>
     <div :class="{'blur': !socket || !socket.connected}">
-      <div class="col-6 input-group">
-        <div class="input-group-prepend">
-          <span class="input-group-text">Name</span>
+      <div class="row">
+        <form class="col-6 input-group" @submit.prevent="setName">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Name</span>
+          </div>
+          <input type="text" class="form-control" v-model="nameInput" @input="nameInputChanged = true">
+          <div class="input-group-append">
+            <input type="submit" class="btn btn-success" :class="{'disabled' : !nameInputChanged || nameInput === ''}" value="Set">
+          </div>
+        </form>
+        <div style="padding: 6px 0">
+          <transition name="fade">
+            <span v-if="nameSavedFlag" class="badge badge-success">Name Saved</span>
+          </transition>
         </div>
-        <input type="text" class="form-control" v-model="nameInput">
       </div>
       <div class="chat-window">
-        <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender.id" :class="{'own-msg': msg.sender.id===socket.id}">
-          <span class="msg-bubble"><b v-if="msg.sender.id != socket.id">{{msg.sender.name}}:</b> {{msg.content}}</span>
+        <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender" :class="{'own-msg': msg.isOwn}">
+          <span v-if="msg.serverMsg"><i>{{msg.content}}</i></span>
+          <span v-else class="msg-bubble"><b v-if="!msg.isOwn">{{msg.sender}}:</b> {{msg.content}}</span>
         </div>
       </div>
       <form class="input-group" @submit.prevent="sendMsg">
         <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
         <div class="input-group-append">
-          <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': !isFormValid}" style="width: 120px" value="Send">
+          <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': msgInput === ''}" style="width: 120px" value="Send">
         </div>
       </form>
     </div>
@@ -31,17 +42,23 @@ export default {
     return {
       messages: [],
       msgInput: '',
-      nameInput: ''
+      nameInput: '',
+      nameInputChanged: false,
+      nameSavedFlag: false
     }
   },
   props: ['socket'],
   mounted: function() {
     this.registerSocketEvents();
     this.getUserCount();
+    this.nameInput = localStorage.getItem('name');
   },
   computed: {
-    isFormValid: function() {
-      return this.socket && this.socket.connected && this.nameInput.length !== 0 && this.msgInput.length !== 0;
+    hasNameChanged: function() {
+      return true;
+    },
+    hasConnection: function() {
+      return this.socket && this.socket.connected;
     }
   },
   watch: {
@@ -58,24 +75,30 @@ export default {
       });
       this.socket.on('addArrival', function(data) {
         self.addMsg({
-          sender: {
-            name: 'Server'
-          },
+          serverMsg: true,
           content: 'A user has just arrived'
         });
       })
     },
+    setName: function() {
+      if (this.nameInput === '') return;
+      localStorage.setItem('name', this.nameInput);
+      this.nameInputChanged = false;
+      this.nameSavedFlag = true;
+      let self = this;
+      setTimeout(function() {
+        self.nameSavedFlag = false;
+      }, 3000);
+    },
     sendMsg: function() {
-      if (!this.isFormValid) return;
+      if (!this.hasConnection || this.msgInput === '') return;
       let data = {
-        sender: {
-          name: this.nameInput,
-          id: this.socket.id
-        },
+        sender: localStorage.getItem('name'),
         content: this.msgInput,
         datetime: new Date().getTime()
       };
       this.socket.emit('sendMsg', data);
+      data.isOwn = true;
       this.messages.push(data);
       this.msgInput = '';
     },
@@ -86,10 +109,9 @@ export default {
       let url = (window.location.hostname === 'localhost' ? 'http://localhost:4000' : '') + '/api/usercount';
       this.$http.get(url).then(function(response) {
         this.messages.push({
-          sender: {
-            name: 'Server'
-          },
-          content: `${response.data.count + 1} users connected`
+          serverMsg: true,
+          content: `${response.data.count + 1} users connected`,
+          datetime: new Date().getTime()
         });
       }, function() {
         console.log('Error fetching usercount');
@@ -152,7 +174,15 @@ export default {
   text-align: right;
 }
 
-form {
-  margin: 0;
+.fade-enter-active {
+  transition: opacity 0.3s;
+}
+
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }
 </style>
