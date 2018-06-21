@@ -43,6 +43,12 @@ io.on('connection', (socket) => {
       new: data.new
     };
     io.sockets.emit('nameChange', emitData);
+  });
+
+  socket.on('greet', (data) => {
+    io.sockets.emit('greet', {
+      sender: data.sender
+    });
   })
 });
 

@@ -11,7 +11,7 @@
           </div>
           <input type="text" class="form-control" v-model="nameInput" @input="nameInputChanged = true">
           <div class="input-group-append">
-            <input type="submit" class="btn btn-success" :class="{'disabled' : !nameInputChanged || nameInput === ''}" value="Set">
+            <input type="submit" class="btn btn-success" :disabled="!nameInputChanged || nameInput === ''" value="Set">
           </div>
         </form>
         <div style="padding: 6px 0">
@@ -22,14 +22,16 @@
       </div>
       <div class="chat-window">
         <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender" :class="{'own-msg': msg.isOwn}">
-          <span v-if="msg.serverMsg"><i>{{msg.content}}</i></span>
+          <span v-if="msg.type === 'server'"><i>{{msg.content}}</i></span>
+          <a v-else-if="msg.type === 'prompt'" href="#" @click="performGreeting">Say Hello 👋</a>
+          <span v-else-if="msg.type === 'notification'" class="msg-bubble">{{msg.content}}</span>
           <span v-else class="msg-bubble"><b v-if="!msg.isOwn">{{msg.sender}}:</b> {{msg.content}}</span>
         </div>
       </div>
       <form class="input-group" @submit.prevent="sendMsg">
         <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
         <div class="input-group-append">
-          <input type="submit" class="btn btn-primary btn-block" :class="{'disabled': msgInput === ''}" style="width: 120px" value="Send">
+          <input type="submit" class="btn btn-primary btn-block" :disabled="msgInput === ''" style="width: 120px" value="Send">
         </div>
       </form>
     </div>
@@ -37,6 +39,13 @@
 </template>
 
 <script>
+const MSG_TYPE = {
+  SERVER: 'server',
+  USER: 'user',
+  PROMPT: 'prompt',
+  NOTIFICATION: 'notification'
+};
+
 export default {
   data () {
     return {
@@ -62,6 +71,10 @@ export default {
     socket: function() {
       if (!this.socket) return; // When the socket variables becomes undefined -- shouldn't happen (there as caution)
       this.registerSocketEvents();
+      let self = this;
+      setTimeout(() => {
+        self.addGreetingPrompt();
+      }, 1000);
     }
   },
   methods: {
@@ -75,14 +88,20 @@ export default {
       });
       this.socket.on('arrival', function(data) {
         self.addMsg({
-          serverMsg: true,
+          type: MSG_TYPE.SERVER,
           content: 'A user has just arrived'
         });
       });
       this.socket.on('nameChange', function(data) {
         self.addMsg({
-          serverMsg: true,
+          type: MSG_TYPE.SERVER,
           content: `${data.old} has changed their name to ${data.new}`
+        });
+      });
+      this.socket.on('greet', function(data) {
+        self.addMsg({
+          type: MSG_TYPE.NOTIFICATION,
+          content: `${data.sender} says Hello! 👋`
         });
       });
     },
@@ -104,6 +123,8 @@ export default {
       if (!this.connected || this.msgInput === '') return;
       if (this.msgInput === '/count') {
         this.getUserCount();
+      } else if (this.msgInput === '/help') {
+        this.showHelpMsg();
       } else {
         let data = {
           sender: localStorage.getItem('name'),
@@ -111,6 +132,7 @@ export default {
           datetime: new Date().getTime()
         };
         this.socket.emit('msg', data);
+        data.type = MSG_TYPE.USER;
         data.isOwn = true;
         this.messages.push(data);
       }
@@ -123,12 +145,37 @@ export default {
       let url = (window.location.hostname === 'localhost' ? 'http://localhost:4000' : '') + '/api/usercount';
       this.$http.get(url).then(function(response) {
         this.messages.push({
-          serverMsg: true,
+          type: MSG_TYPE.SERVER,
           content: `${response.data.count} users connected`,
           datetime: new Date().getTime()
         });
       }, function() {
         console.log('Error fetching usercount');
+      });
+    },
+    showHelpMsg: function() {
+      this.messages.push({
+        type: MSG_TYPE.SERVER,
+        content: `--Help--`
+      });
+      this.messages.push({
+        type: MSG_TYPE.SERVER,
+        content: `/count - Displays the current number of online users`
+      });
+    },
+    addGreetingPrompt: function() {
+      this.messages.push({
+        type: MSG_TYPE.PROMPT
+      });
+    },
+    performGreeting: function() {
+      for (let i=0; i<this.messages.length; i++) {
+        if (this.messages[i].type === MSG_TYPE.PROMPT) {
+          this.messages.splice(i, 1);
+        }
+      }
+      this.socket.emit('greet', {
+        sender: localStorage.getItem('name')
       });
     }
   }
