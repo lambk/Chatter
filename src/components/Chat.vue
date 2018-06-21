@@ -106,7 +106,7 @@ export default {
       });
     },
     setName: function() {
-      if (this.nameInput === '') return;
+      if (!this.nameInputChanged || this.nameInput === '') return;
       this.socket.emit('nameChange', {
         old: localStorage.getItem('name'),
         new: this.nameInput
