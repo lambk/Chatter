@@ -20,17 +20,30 @@ const server = app.listen(port, () => {
 
 const io = socketio(server);
 io.on('connection', (socket) => {
-  console.log(`Socket connection established (${socket.id})`);
+  console.log(`[CONN] Socket connection established (${socket.id})`);
   socket.broadcast.emit('addArrival');
 
   socket.on('disconnect', () => {
-    console.log(`Socket disconnection (${socket.id})`);
+    console.log(`[DISC] Socket disconnection (${socket.id})`);
   });
 
   socket.on('sendMsg', (data) => {
-    console.log(`[Msg] Sender: ${data.sender.name} [${data.sender.id}] Content: ${data.content}`);
-    socket.broadcast.emit('addMsg', data)
+    console.log(`[MSG] Sender: ${data.sender} (${socket.id}) Content: ${data.content}`);
+    let emitData = {
+      sender: data.sender ? data.sender : `user(${socket.id.slice(0,4)})`,
+      content: data.content
+    };
+    socket.broadcast.emit('addMsg', emitData)
   });
+
+  socket.on('nameChange', (data) => {
+    console.log(`[NAME] ${data.old} changed their name to ${data.new}`);
+    let emitData = {
+      old: data.old ? data.old : `user(${socket.id.slice(0,4)})`,
+      new: data.new
+    };
+    io.sockets.emit('nameChange', emitData);
+  })
 });
 
 app.get('/api/usercount', (req, res) => {

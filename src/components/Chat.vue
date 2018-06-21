@@ -78,10 +78,20 @@ export default {
           serverMsg: true,
           content: 'A user has just arrived'
         });
-      })
+      });
+      this.socket.on('nameChange', function(data) {
+        self.addMsg({
+          serverMsg: true,
+          content: `${data.old} has changed their name to ${data.new}`
+        });
+      });
     },
     setName: function() {
       if (this.nameInput === '') return;
+      this.socket.emit('nameChange', {
+        old: localStorage.getItem('name'),
+        new: this.nameInput
+      });
       localStorage.setItem('name', this.nameInput);
       this.nameInputChanged = false;
       this.nameSavedFlag = true;
