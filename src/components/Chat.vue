@@ -169,7 +169,7 @@ export default {
       });
     },
     performGreeting: function() {
-      for (let i=0; i<this.messages.length; i++) {
+      for (let i = 0; i < this.messages.length; i++) {
         if (this.messages[i].type === MSG_TYPE.PROMPT) {
           this.messages.splice(i, 1);
         }
