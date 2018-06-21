@@ -2,7 +2,7 @@
   <div id="app">
     <h1>Chatter</h1>
     <div class="col-sm-11 col-md-9 col-lg-7 chat-container" style="margin: auto">
-      <router-view :socket="socket"/>
+      <router-view :socket="socket" :connected="hasConnection"/>
     </div>
   </div>
 </template>
@@ -15,6 +15,11 @@ export default {
   data () {
     return {
       socket: undefined
+    }
+  },
+  computed: {
+    hasConnection: function() {
+      return this.socket && this.socket.connected;
     }
   },
   mounted: function() {

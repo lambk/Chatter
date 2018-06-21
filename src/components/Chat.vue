@@ -1,9 +1,9 @@
 <template lang="html">
   <div>
-    <div v-if="!socket || !socket.connected" class="chat-overlay">
+    <div v-if="!connected && !starting" class="chat-overlay">
       <span>No Connection</span>
     </div>
-    <div :class="{'blur': !socket || !socket.connected}">
+    <div :class="{'blur': !connected && !starting}">
       <div class="row">
         <form class="col-6 input-group" @submit.prevent="setName">
           <div class="input-group-prepend">
@@ -44,36 +44,36 @@ export default {
       msgInput: '',
       nameInput: '',
       nameInputChanged: false,
-      nameSavedFlag: false
+      nameSavedFlag: false,
+      starting: true
     }
   },
-  props: ['socket'],
+  props: ['socket', 'connected'],
   mounted: function() {
-    this.registerSocketEvents();
-    this.getUserCount();
+    // Prevent 'No Connection' overlay from appearing until after 0.5s
+    let self = this;
+    setTimeout(() => {
+      self.starting = false
+    }, 500);
+    // Fill form with name from the last session
     this.nameInput = localStorage.getItem('name');
-  },
-  computed: {
-    hasNameChanged: function() {
-      return true;
-    },
-    hasConnection: function() {
-      return this.socket && this.socket.connected;
-    }
   },
   watch: {
     socket: function() {
+      if (!this.socket) return; // When the socket variables becomes undefined -- shouldn't happen (there as caution)
       this.registerSocketEvents();
     }
   },
   methods: {
     registerSocketEvents: function() {
-      if (this.socket === undefined) return;
       let self = this;
-      this.socket.on('addMsg', function(data) {
+      this.socket.on('connect', () => {
+        self.getUserCount();
+      });
+      this.socket.on('msg', function(data) {
         self.addMsg(data);
       });
-      this.socket.on('addArrival', function(data) {
+      this.socket.on('arrival', function(data) {
         self.addMsg({
           serverMsg: true,
           content: 'A user has just arrived'
@@ -101,15 +101,19 @@ export default {
       }, 3000);
     },
     sendMsg: function() {
-      if (!this.hasConnection || this.msgInput === '') return;
-      let data = {
-        sender: localStorage.getItem('name'),
-        content: this.msgInput,
-        datetime: new Date().getTime()
-      };
-      this.socket.emit('sendMsg', data);
-      data.isOwn = true;
-      this.messages.push(data);
+      if (!this.connected || this.msgInput === '') return;
+      if (this.msgInput === '/count') {
+        this.getUserCount();
+      } else {
+        let data = {
+          sender: localStorage.getItem('name'),
+          content: this.msgInput,
+          datetime: new Date().getTime()
+        };
+        this.socket.emit('msg', data);
+        data.isOwn = true;
+        this.messages.push(data);
+      }
       this.msgInput = '';
     },
     addMsg: function(data) {
@@ -120,7 +124,7 @@ export default {
       this.$http.get(url).then(function(response) {
         this.messages.push({
           serverMsg: true,
-          content: `${response.data.count + 1} users connected`,
+          content: `${response.data.count} users connected`,
           datetime: new Date().getTime()
         });
       }, function() {

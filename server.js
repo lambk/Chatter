@@ -21,19 +21,19 @@ const server = app.listen(port, () => {
 const io = socketio(server);
 io.on('connection', (socket) => {
   console.log(`[CONN] Socket connection established (${socket.id})`);
-  socket.broadcast.emit('addArrival');
+  socket.broadcast.emit('arrival');
 
   socket.on('disconnect', () => {
     console.log(`[DISC] Socket disconnection (${socket.id})`);
   });
 
-  socket.on('sendMsg', (data) => {
+  socket.on('msg', (data) => {
     console.log(`[MSG] Sender: ${data.sender} (${socket.id}) Content: ${data.content}`);
     let emitData = {
       sender: data.sender ? data.sender : `user(${socket.id.slice(0,4)})`,
       content: data.content
     };
-    socket.broadcast.emit('addMsg', emitData)
+    socket.broadcast.emit('msg', emitData)
   });
 
   socket.on('nameChange', (data) => {
