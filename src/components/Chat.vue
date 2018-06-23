@@ -4,25 +4,28 @@
       <span>No Connection</span>
     </div>
     <div :class="{'blur': !connected && !starting}">
+      <!-- Name input -->
       <div class="row">
         <form class="col-6 input-group" @submit.prevent="setName">
           <div class="input-group-prepend">
             <span class="input-group-text">Name</span>
           </div>
-          <input type="text" class="form-control" v-model="nameInput" @input="nameInputChanged = true">
+          <input type="text" class="form-control" v-model="nameInput.value" @input="nameInput.changed = true">
           <div class="input-group-append">
-            <input type="submit" class="btn btn-success" :disabled="!nameInputChanged || nameInput === ''" value="Set">
+            <input type="submit" class="btn btn-success" :disabled="!nameInput.changed || nameInput.value === ''" value="Set">
           </div>
         </form>
         <div style="padding: 6px 0">
           <transition name="fade">
-            <span v-if="nameSavedFlag" class="badge badge-success">Name Saved</span>
+            <span v-if="nameInput.saved" class="badge badge-success">Name Saved</span>
           </transition>
         </div>
       </div>
+      <!-- Chat window -->
       <div class="chat-window">
         <msg v-for="msg in messages" :src="msg" :key="msg.id" @greet="greet"></msg>
       </div>
+      <!-- Chat input -->
       <form class="input-group" @submit.prevent="sendMsg">
         <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
         <div class="input-group-append">
@@ -49,9 +52,11 @@ export default {
     return {
       messages: [],
       msgInput: '',
-      nameInput: '',
-      nameInputChanged: false,
-      nameSavedFlag: false,
+      nameInput: {
+        value: 'rrr',
+        changed: false,
+        saved: false
+      },
       starting: true
     }
   },
@@ -66,7 +71,7 @@ export default {
       self.starting = false
     }, 500);
     // Fill form with name from the last session
-    this.nameInput = localStorage.getItem('name');
+    this.nameInput.value = localStorage.getItem('name');
   },
   watch: {
     socket: function() {
@@ -107,17 +112,17 @@ export default {
       });
     },
     setName: function() {
-      if (!this.nameInputChanged || this.nameInput === '') return;
+      if (!this.nameInput.changed || this.nameInput.value === '') return;
       this.socket.emit('nameChange', {
         old: localStorage.getItem('name'),
-        new: this.nameInput
+        new: this.nameInput.value
       });
-      localStorage.setItem('name', this.nameInput);
-      this.nameInputChanged = false;
-      this.nameSavedFlag = true;
+      localStorage.setItem('name', this.nameInput.value);
+      this.nameInput.changed = false;
+      this.nameInput.saved = true;
       let self = this;
       setTimeout(function() {
-        self.nameSavedFlag = false;
+        self.nameInput.saved = false;
       }, 3000);
     },
     sendMsg: function() {
@@ -148,8 +153,7 @@ export default {
         this.messages.push({
           id: crypto.randomBytes(10).toString('hex'),
           type: MSG_TYPE.SERVER,
-          content: `${response.data.count} users connected`,
-          datetime: new Date().getTime()
+          content: `${response.data.count} users connected`
         });
       }, function() {
         console.log('Error fetching usercount');
