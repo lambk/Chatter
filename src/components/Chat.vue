@@ -21,12 +21,7 @@
         </div>
       </div>
       <div class="chat-window">
-        <div v-for="msg in messages" :key="msg.datetime" :owner="msg.sender" :class="{'own-msg': msg.isOwn}">
-          <span v-if="msg.type === 'server'"><i>{{msg.content}}</i></span>
-          <a v-else-if="msg.type === 'prompt'" href="#" @click="performGreeting">Say Hello 👋</a>
-          <span v-else-if="msg.type === 'notification'" class="msg-bubble">{{msg.content}}</span>
-          <span v-else class="msg-bubble"><b v-if="!msg.isOwn">{{msg.sender}}:</b> {{msg.content}}</span>
-        </div>
+        <msg v-for="msg in messages" :src="msg" :key="msg.id" @greet="greet"></msg>
       </div>
       <form class="input-group" @submit.prevent="sendMsg">
         <input type="text" class="form-control" v-model="msgInput" placeholder="Send a message">
@@ -39,6 +34,9 @@
 </template>
 
 <script>
+import Msg from './Msg.vue'
+import crypto from 'crypto'
+
 const MSG_TYPE = {
   SERVER: 'server',
   USER: 'user',
@@ -58,6 +56,9 @@ export default {
     }
   },
   props: ['socket', 'connected'],
+  components: {
+    Msg
+  },
   mounted: function() {
     // Prevent 'No Connection' overlay from appearing until after 0.5s
     let self = this;
@@ -127,9 +128,9 @@ export default {
         this.showHelpMsg();
       } else {
         let data = {
+          id: crypto.randomBytes(10).toString('hex'),
           sender: localStorage.getItem('name'),
-          content: this.msgInput,
-          datetime: new Date().getTime()
+          content: this.msgInput
         };
         this.socket.emit('msg', data);
         data.type = MSG_TYPE.USER;
@@ -145,6 +146,7 @@ export default {
       let url = (window.location.hostname === 'localhost' ? 'http://localhost:4000' : '') + '/api/usercount';
       this.$http.get(url).then(function(response) {
         this.messages.push({
+          id: crypto.randomBytes(10).toString('hex'),
           type: MSG_TYPE.SERVER,
           content: `${response.data.count} users connected`,
           datetime: new Date().getTime()
@@ -168,7 +170,7 @@ export default {
         type: MSG_TYPE.PROMPT
       });
     },
-    performGreeting: function() {
+    greet: function() {
       for (let i = 0; i < this.messages.length; i++) {
         if (this.messages[i].type === MSG_TYPE.PROMPT) {
           this.messages.splice(i, 1);
@@ -213,26 +215,6 @@ export default {
   position: relative;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.msg-bubble {
-  display: inline-block;
-  margin-bottom: 5px;
-  max-width: 50%;
-
-  padding: 3px 15px 3px 6px;
-  border-radius: 5px 15px 15px 5px;
-  background: #F3F3F3;
-}
-
-.own-msg > .msg-bubble {
-  padding: 3px 6px 3px 15px;
-  border-radius: 15px 5px 5px 15px;
-  background: #85C1E9 !important;
-}
-
-.own-msg {
-  text-align: right;
 }
 
 .fade-enter-active {

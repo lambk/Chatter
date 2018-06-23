@@ -30,6 +30,7 @@ io.on('connection', (socket) => {
   socket.on('msg', (data) => {
     console.log(`[MSG] Sender: ${data.sender} (${socket.id}) Content: ${data.content}`);
     let emitData = {
+      id: data.id,
       sender: data.sender ? data.sender : `user(${socket.id.slice(0,4)})`,
       content: data.content
     };
