@@ -30,6 +30,7 @@ io.on('connection', (socket) => {
   socket.on('msg', (data) => {
     console.log(`[MSG] Sender: ${data.sender} (${socket.id}) Content: ${data.content}`);
     let emitData = {
+      type: data.type,
       id: data.id,
       sender: data.sender ? data.sender : `user(${socket.id.slice(0,4)})`,
       content: data.content
@@ -50,7 +51,15 @@ io.on('connection', (socket) => {
     io.sockets.emit('greet', {
       sender: data.sender
     });
-  })
+  });
+
+  socket.on('vote', (data) => {
+    console.log(`[VOTE] User ${data.isUpvote ? 'upvoted' : 'downvoted'} msg with id ${data.id}`)
+    io.sockets.emit('vote', {
+      id: data.id,
+      isUpvote: data.isUpvote
+    });
+  });
 });
 
 app.get('/api/usercount', (req, res) => {

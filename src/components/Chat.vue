@@ -23,7 +23,7 @@
       </div>
       <!-- Chat window -->
       <div class="chat-window">
-        <msg v-for="msg in messages" :src="msg" :key="msg.id" @greet="greet"></msg>
+        <msg v-for="msg in messages" :src="msg" :key="msg.id" @greet="greet" @vote="vote"></msg>
       </div>
       <!-- Chat input -->
       <form class="input-group" @submit.prevent="sendMsg">
@@ -110,6 +110,13 @@ export default {
           content: `${data.sender} says Hello! 👋`
         });
       });
+      this.socket.on('vote', function(data) {
+        self.messages.forEach(function(el) {
+          if (el.type === MSG_TYPE.USER && el.id === data.id) {
+            if (data.isUpvote) el.votes++; else el.votes--;
+          }
+        });
+      });
     },
     setName: function() {
       if (!this.nameInput.changed || this.nameInput.value === '') return;
@@ -133,19 +140,36 @@ export default {
         this.showHelpMsg();
       } else {
         let data = {
+          type: MSG_TYPE.USER,
           id: crypto.randomBytes(10).toString('hex'),
           sender: localStorage.getItem('name'),
           content: this.msgInput
         };
         this.socket.emit('msg', data);
-        data.type = MSG_TYPE.USER;
         data.isOwn = true;
-        this.messages.push(data);
+        this.addMsg(data);
       }
       this.msgInput = '';
     },
     addMsg: function(data) {
-      this.messages.push(data);
+      let msg;
+      if (data.type === MSG_TYPE.USER) {
+        msg = {
+          type: data.type,
+          id: data.id ? data.id : crypto.randomBytes(10).toString('hex'),
+          votes: 0,
+          upvoted: false,
+          sender: data.sender,
+          isOwn: data.isOwn,
+          content: data.content
+        }
+      } else {
+        msg = {
+          type: data.type,
+          content: data.content
+        }
+      }
+      this.messages.push(msg);
     },
     getUserCount: function() {
       let url = (window.location.hostname === 'localhost' ? 'http://localhost:4000' : '') + '/api/usercount';
@@ -160,17 +184,17 @@ export default {
       });
     },
     showHelpMsg: function() {
-      this.messages.push({
+      this.addMsg({
         type: MSG_TYPE.SERVER,
         content: `--Help--`
       });
-      this.messages.push({
+      this.addMsg({
         type: MSG_TYPE.SERVER,
         content: `/count - Displays the current number of online users`
       });
     },
     addGreetingPrompt: function() {
-      this.messages.push({
+      this.addMsg({
         type: MSG_TYPE.PROMPT
       });
     },
@@ -182,6 +206,12 @@ export default {
       }
       this.socket.emit('greet', {
         sender: localStorage.getItem('name')
+      });
+    },
+    vote: function(id, isUpvote) {
+      this.socket.emit('vote', {
+        id: id,
+        isUpvote: isUpvote
       });
     }
   }
