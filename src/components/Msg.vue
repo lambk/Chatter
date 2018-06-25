@@ -61,12 +61,11 @@ export default {
   top: 50%;
   transform: translateY(-50%);
   margin: 0 -10px;
-  z-index: 5;
   font-size: 0.7rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
   padding: 2px 4px;
-  border-radius: 40%;
-  box-shadow: 0 0 8px #eee;
+  border-radius: 9px;
+  box-shadow: 0 0 15px #ddd;
 }
 
 .upvoted {
