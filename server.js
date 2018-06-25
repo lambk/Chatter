@@ -66,3 +66,7 @@ app.get('/api/usercount', (req, res) => {
   let size = Object.keys(io.sockets.connected).length;
   res.status(200).send({count: size});
 });
+
+app.get('*', (req, res) => {
+  res.redirect('/');
+});
