@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
 
   socket.on('greet', (data) => {
     io.sockets.emit('greet', {
-      sender: data.sender
+      sender: data.sender ? data.sender : `user(${socket.id.slice(0,4)})`
     });
   });
 
