@@ -81,6 +81,17 @@ export default {
       setTimeout(() => {
         self.addGreetingPrompt();
       }, 1000);
+    },
+    messages: function() {
+      let chat = $('.chat-window');
+      // Checks if the scroll is currently near the bottom
+      let scrolledToBottom = chat[0].scrollHeight - chat.scrollTop() - chat.outerHeight() <= 100;
+      if (scrolledToBottom) {
+        // Updates the scroll position to the bottom
+        this.$nextTick(function() {
+          chat.scrollTop(chat[0].scrollHeight);
+        });
+      }
     }
   },
   methods: {
