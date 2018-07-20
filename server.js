@@ -67,6 +67,6 @@ app.get('/api/usercount', (req, res) => {
   res.status(200).send({count: size});
 });
 
-app.get('*', (req, res) => {
-  res.redirect('/');
-});
+//app.get('*', (req, res) => {
+  //res.redirect('/');
+//});
