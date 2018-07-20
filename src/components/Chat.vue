@@ -6,7 +6,7 @@
     <div :class="{'blur': !connected && !starting}">
       <!-- Name input -->
       <div class="row">
-        <form class="col-6 input-group" @submit.prevent="setName">
+        <form class="col-md-6 col-sm-12 input-group" @submit.prevent="setName">
           <div class="input-group-prepend">
             <span class="input-group-text">Name</span>
           </div>
