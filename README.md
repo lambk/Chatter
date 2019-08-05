@@ -1,6 +1,8 @@
 # chatter
 
-> A simple chat web application to gain experience with sockets
+A simple Node.js chat application using WebSockets
+
+https://chatter.lambk.dev
 
 ## Build Setup
 
